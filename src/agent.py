@@ -3,7 +3,7 @@ import numpy as np
 from constants import ACTIONS
 
 class Agent:
-    def __init__(self, name="player"):
+    def __init__(self, name):
         self.name = name
         self._cards = []
         self.cash = 0
@@ -35,8 +35,8 @@ class Agent:
 
 
 class RandomAgent(Agent):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name="player"):
+        super().__init__(name=name)
 
     def make_action(self):
         action = np.random.choice(ACTIONS)

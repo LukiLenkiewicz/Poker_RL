@@ -15,9 +15,13 @@ class Deck():
                 deck.append(card)
 
         return deck
-    
-    def __str__(self):
-        return str([str(card) for card in self.deck])
-    
+
+    def give_card(self):
+        card = self.deck.pop()    
+        return card
+
     def shuffle_deck(self):
         np.random.shuffle(self.deck)
+
+    def __str__(self):
+        return str([str(card) for card in self.deck])
