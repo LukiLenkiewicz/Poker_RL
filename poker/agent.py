@@ -10,6 +10,7 @@ class Agent:
         self.small_blind = None
         self.big_blind = None
         self.folded = None
+        self.hand = None
 
     def add_card(self, card):
         self._cards.append(card)

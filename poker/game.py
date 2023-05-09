@@ -49,6 +49,12 @@ class Game:
             pot = self._make_actions(pot, round="river")
 
             #finding winner
+            for player in self.players:
+                pass
+                
+            #reset_hand
+            for player in self.players:
+                player.hand = None
 
             self._change_dealer()
 
