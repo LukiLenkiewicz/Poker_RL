@@ -10,17 +10,13 @@ class Agent:
         self.small_blind = None
         self.big_blind = None
         self.folded = None
-        self.hand = None
+        self.hand = {"hand": None}
 
     def add_card(self, card):
         self._cards.append(card)
     
     def remove_cards(self):
         self._cards.clear()
-
-    def get_hand(self):
-        # TODO: code figure getter
-        pass
 
     def small_bet(self):
         if self.cash >= self.big_blind:
@@ -81,11 +77,13 @@ class RandomAgent(Agent):
     def __init__(self, name="player"):
         super().__init__(name=name)
 
-    def make_action(self, pot, round):
+    def make_action(self, pot, round, *args):
         action =  np.random.choice(ACTIONS)
         
         if action == "raise" or action == "call":
             bet_size = self.small_bet() if round in ("preflop", "flop") else self.big_bet()
+            print(pot)
+            print(bet_size)
             return pot + bet_size
         elif action == "check":
             pass

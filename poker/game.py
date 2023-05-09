@@ -1,7 +1,8 @@
 from agent import Agent, RandomAgent
 from deck import Deck
+from hand_handler import HandHandler
 
-from constants import NUM_PLAYER_CARDS, NUM_FLOP_CARDS
+from constants import NUM_PLAYER_CARDS, NUM_FLOP_CARDS, HANDS_HIERARCHY
 
 class Game:
     def __init__(self, num_players, starting_bankroll, small_blind):
@@ -13,6 +14,7 @@ class Game:
 
     def start_game(self):  # TODO: handle prohibited actions
         num_rounds = 100
+        hand_checker = HandHandler()
 
         for player in self.players:
             player.small_blind = self.small_blind
@@ -20,7 +22,7 @@ class Game:
 
         for _ in range(num_rounds):
             pot = 0
-            public_cards = []
+            self.public_cards = []
 
             for player in self.players:
                 player.folded = False
@@ -32,26 +34,45 @@ class Game:
             #flop
             for _ in range(NUM_FLOP_CARDS):
                 card = self.deck.give_card()
-                public_cards.append(card)
+                self.public_cards.append(card)
 
             pot = self._make_actions(pot, round="flop")
 
             #turn
             card = self.deck.give_card()
-            public_cards.append(card)
+            self.public_cards.append(card)
 
             pot = self._make_actions(pot, round="turn")
 
             #river
             card = self.deck.give_card()
-            public_cards.append(card)
+            self.public_cards.append(card)
 
             pot = self._make_actions(pot, round="river")
 
             #finding winner
+            hand_checker.public_cards = self.public_cards
+            current_hands = []
             for player in self.players:
-                pass
+                hand = hand_checker.check_hand(player)
+                player.hand = hand
+                current_hands.append(hand["hand"])
+
+            strongest_hand = None
+            for hand in HANDS_HIERARCHY:
+                if hand in current_hands:
+                    strongest_hand = hand
                 
+            winners = []
+            for player in self.players:
+                if player.hand["hand"] == strongest_hand:
+                    winners.append(player)
+            
+            prize = pot//len(winners)
+
+            for winner in winners:
+                winner.cash += prize
+
             #reset_hand
             for player in self.players:
                 player.hand = None
@@ -66,7 +87,7 @@ class Game:
     def deal(self):
         for _ in range(NUM_PLAYER_CARDS):
             for player in self.players:
-                card = self.deck()
+                card = self.deck.give_card()
                 player.add_card(card)
 
     def _make_actions(self, pot, round="preflop"):
@@ -78,7 +99,7 @@ class Game:
 
         for player in self.players[starting_player:]:
             if not player.folded:
-                pot = player.make_action(pot, round)
+                pot = player.make_action(pot, round, self.public_cards)
 
         return pot
 

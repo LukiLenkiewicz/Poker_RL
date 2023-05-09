@@ -30,8 +30,6 @@ class HandHandler:
 
         return current_hand
 
-
-
     @staticmethod
     def generate_card_counter():
         counter = {}
@@ -122,10 +120,8 @@ class HandHandler:
             return {"hand": "four", "cards": four_cards}
 
 
-    def check_straight_flush(self):
-        pass
-
-
-if __name__ == "__main__":
-    dict_ = {1:2, 3:4}
-    # [0, 1,1,1,1,1, 1] ->
+    def check_straight_flush(self, card_counter):
+        straight = self.check_straight(card_counter)
+        flush = self.check_flush(card_counter)
+        if straight and flush:
+            return {"hand": "straight flush"}
