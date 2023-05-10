@@ -82,10 +82,9 @@ class RandomAgent(Agent):
         
         if action == "raise" or action == "call":
             bet_size = self.small_bet() if round in ("preflop", "flop") else self.big_bet()
-            print(pot)
-            print(bet_size)
             return pot + bet_size
         elif action == "check":
-            pass
+            return pot
         elif action == "fold":
             self.folded = True
+            return pot

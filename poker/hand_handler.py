@@ -9,11 +9,11 @@ class HandHandler:
         cards = player._cards + self.public_cards
 
         card_counter = self.generate_card_counter()
-        current_hand = {}
+        current_hand = {"hand": None}
 
         for card in cards:
             card_counter[card.card_num] += 1
-            card_counter[card.card_suit] += 1
+            card_counter[card.suit] += 1
 
         # for num in CARD_NUMS:
         #     if card_counter[num] > 0:
@@ -54,7 +54,7 @@ class HandHandler:
         if not first_pair:
             return None
         
-        del new_card_counter[first_pair]
+        del new_card_counter[first_pair["first"]]
         second_pair = self.check_pair(new_card_counter)
 
         if second_pair:
@@ -92,7 +92,7 @@ class HandHandler:
     def check_flush(card_counter):
         # The highest card of the five determines the strength of the flush
         for color, count in list(card_counter.items())[:4]:
-            if count >= 3:
+            if count >= 5:
                 return {"hand": "flush", "color": color}
 
     def check_full_house(self, card_counter):
@@ -102,7 +102,7 @@ class HandHandler:
         if not tripled:
             return None
         
-        del new_card_counter[tripled]
+        del new_card_counter[tripled["cards"]]
         pair = self.check_pair(new_card_counter)
 
         if pair:

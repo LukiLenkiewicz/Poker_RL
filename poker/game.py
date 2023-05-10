@@ -12,13 +12,14 @@ class Game:
         self.big_blind = small_blind*2
         self.deck = Deck()
 
-    def start_game(self):  # TODO: handle prohibited actions
-        num_rounds = 100
+    def start_game(self):
+        num_rounds = 3
         hand_checker = HandHandler()
 
         for player in self.players:
             player.small_blind = self.small_blind
             player.big_blind = self.big_blind
+            player.cash = self.starting_bankroll
 
         for _ in range(num_rounds):
             pot = 0
@@ -100,11 +101,10 @@ class Game:
         for player in self.players[starting_player:]:
             if not player.folded:
                 pot = player.make_action(pot, round, self.public_cards)
-
         return pot
 
     def _change_dealer(self):
-        self.players.append(self.players.pop())
+        self.players = self.players[1:] + self.players[:1]
 
     def _init_players(self, num_players):
         return [RandomAgent(f"player{i+1}") for i in range(num_players)]
