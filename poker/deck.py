@@ -22,6 +22,8 @@ class Deck():
             for _ in range(NUM_FLOP_CARDS-1):
                card = self.deck.pop()
                cards.append(card)
+        elif round == "preflop":
+            return []
         card = self.deck.pop()
         cards.append(card)
         return cards

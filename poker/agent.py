@@ -29,7 +29,7 @@ class Agent:
             bet_value = self.cash
             self.cash = 0
             self.all_in = True
-
+        self.given_bet += bet_value
         return bet_value
 
     def big_bet(self):
@@ -41,7 +41,7 @@ class Agent:
             bet_value = self.cash
             self.cash = 0
             self.all_in = True
-        
+        self.given_bet += bet_value
         return bet_value
     
     def make_bet(self, action="call", bet=None):
@@ -97,26 +97,20 @@ class RandomAgent(Agent):
         
         if action == "call":
             bet_size = self.make_bet(action=action, bet=min_bet)
-            message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {bet_size}"
-            logging.info(message)
-            return pot + bet_size
         elif action == "raise":
             if min_bet > self.given_bet:
                 bet_size = self.make_bet(action="call", bet=min_bet)
                 pot += bet_size
             bet_size = self.small_bet() if round in ("preflop", "flop") else self.big_bet()
-            message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {bet_size}"
-            logging.info(message)
-            return pot + bet_size
         elif action == "check":
-            message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {0}"
-            logging.info(message)
-            return pot
+            bet_size = 0
         elif action == "fold":
+            bet_size = 0
             self.folded = True
-            message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - FOLDED"
-            logging.info(message)
-            return pot
+
+        message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {0}"
+        logging.info(message)
+        return pot + bet_size
 
 
 if __name__ == "__main__":

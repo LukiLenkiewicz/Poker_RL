@@ -38,35 +38,31 @@ class Game:
 
             self.shuffle_up_and_deal()
 
-            # for round in ROUNDS:
-            #     logging.info(f"  {round}")
-            #     pot = self._make_actions(pot, game_round=round)
-
-            logging.info("  preflop")
-            pot = self._make_actions(pot, game_round="preflop")
-
-            logging.info("  flop")
-            cards = self.deck.give_card(round="flop")
-            self.public_cards += cards
-
-            pot = self._make_actions(pot, game_round="flop")
-            logging.info(f"pot size: {pot}")
-
-
-            logging.info("  turn")
-            card = self.deck.give_card()
-            self.public_cards += card
-
-            pot = self._make_actions(pot, game_round="turn")
-            logging.info(f"pot size: {pot}")
-
-
-            logging.info("  river")
-            card = self.deck.give_card()
-            self.public_cards += card
-
-            pot = self._make_actions(pot, game_round="river")
-            logging.info(f"pot size: {pot}")
+            for round in ROUNDS:
+                logging.info(f"  {round}")
+                pot = self._make_actions(pot, game_round=round)
+                cards = self.deck.give_card(round=round)
+                self.public_cards += cards
+                logging.info(f"pot size: {pot}")
+                            
+            # logging.info("  preflop")
+            # pot = self._make_actions(pot, game_round="preflop")
+            # logging.info(f"pot size: {pot}")
+            # logging.info("  flop")
+            # cards = self.deck.give_card(round="flop")
+            # self.public_cards += cards
+            # pot = self._make_actions(pot, game_round="flop")
+            # logging.info(f"pot size: {pot}")
+            # logging.info("  turn")
+            # card = self.deck.give_card()
+            # self.public_cards += card
+            # pot = self._make_actions(pot, game_round="turn")
+            # logging.info(f"pot size: {pot}")
+            # logging.info("  river")
+            # card = self.deck.give_card()
+            # self.public_cards += card
+            # pot = self._make_actions(pot, game_round="river")
+            # logging.info(f"pot size: {pot}")
 
 
             logging.info("  finding_winner")
@@ -117,23 +113,14 @@ class Game:
         starting_player = 0
         if game_round == "preflop":
             starting_player = 2
-
-            player = self.players[0]
-            message = f"{player.name}: cash - {player.cash}, combined bets - {player.given_bet}, action - small blind, round bet - {0}"
-            logging.info(message)
-
-            small_blind = player.make_bet(action="small_blind")
-            pot += small_blind
-            self.min_bet = small_blind 
-
-            player = self.players[1]
-            message = f"{player.name}: cash - {player.cash}, combined bets - {player.given_bet}, action - big blind, round bet - {0}"
-            logging.info(message)
-
-            big_blind = player.make_bet(action="small_blind")
-            pot += big_blind
-            if big_blind > self.min_bet:
-                self.min_bet = big_blind
+            blinds = ["small_blind", "big_blind"]
+            for blind, player in zip(blinds, self.players[:2]):
+                blind_bet = player.make_bet(action=blind)
+                pot += blind_bet
+                message = f"{player.name}: cash - {player.cash}, combined bets - {player.given_bet}, action - small blind, round bet - {self.small_blind}"
+                logging.info(message)
+                if blind_bet > self.min_bet:
+                    self.min_bet = blind_bet
 
         for player in self.players[starting_player:]:
             if not player.folded and not player.all_in:
@@ -158,6 +145,6 @@ class Game:
 if __name__ == "__main__":
     arr = [1,2,3]
 
-    arr += 4
+    arr += []
 
     print(arr)
