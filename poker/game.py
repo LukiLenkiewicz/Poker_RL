@@ -4,7 +4,7 @@ from agent import Agent, RandomAgent
 from deck import Deck
 from hand_handler import HandHandler
 
-from constants import NUM_PLAYER_CARDS, NUM_FLOP_CARDS, HANDS_HIERARCHY, ROUNDS
+from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
     def __init__(self, num_players, starting_bankroll, small_blind):
@@ -44,26 +44,6 @@ class Game:
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
                 logging.info(f"pot size: {pot}")
-                            
-            # logging.info("  preflop")
-            # pot = self._make_actions(pot, game_round="preflop")
-            # logging.info(f"pot size: {pot}")
-            # logging.info("  flop")
-            # cards = self.deck.give_card(round="flop")
-            # self.public_cards += cards
-            # pot = self._make_actions(pot, game_round="flop")
-            # logging.info(f"pot size: {pot}")
-            # logging.info("  turn")
-            # card = self.deck.give_card()
-            # self.public_cards += card
-            # pot = self._make_actions(pot, game_round="turn")
-            # logging.info(f"pot size: {pot}")
-            # logging.info("  river")
-            # card = self.deck.give_card()
-            # self.public_cards += card
-            # pot = self._make_actions(pot, game_round="river")
-            # logging.info(f"pot size: {pot}")
-
 
             logging.info("  finding_winner")
             hand_checker.public_cards = self.public_cards
@@ -124,7 +104,10 @@ class Game:
 
         for player in self.players[starting_player:]:
             if not player.folded and not player.all_in:
+                old_pot = pot
                 pot = player.make_action(pot, game_round, self.min_bet, self.public_cards)
+                if pot > old_pot:
+                    min_bet = pot - old_pot
         return pot
 
     def _change_dealer(self):

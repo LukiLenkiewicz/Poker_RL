@@ -15,10 +15,6 @@ class HandHandler:
             card_counter[card.card_num] += 1
             card_counter[card.suit] += 1
 
-        # for num in CARD_NUMS:
-        #     if card_counter[num] > 0:
-        #         cards["high_card"] = num
-
         possible_hands = [self.check_pair, self.check_two_pairs, self.check_three, self.check_straight, self.check_flush,
                           self.check_full_house, self.check_four, self.check_straight_flush]
 
