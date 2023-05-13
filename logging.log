@@ -1,0 +1,84 @@
+   round no. 1
+  preflop
+player1: cash - 1000, combined bets - 0, action - small blind, round bet - 0
+player2: cash - 1000, combined bets - 0, action - big blind, round bet - 0
+player3: cash - 925, combined bets - 25, action - raise, round bet - 50
+player4: cash - 925, combined bets - 25, action - raise, round bet - 50
+  flop
+player1: cash - 975, combined bets - 25, action - check, round bet - 0
+player2: cash - 925, combined bets - 25, action - raise, round bet - 50
+player3: cash - 875, combined bets - 25, action - raise, round bet - 50
+player4: cash - 925, combined bets - 25, action - check, round bet - 0
+pot size: 300
+  turn
+player1: cash - 975, combined bets - 25, action - check, round bet - 0
+player2: cash - 825, combined bets - 25, action - raise, round bet - 100
+player3: cash - 875, combined bets - 25, action - call, round bet - 0
+player4: cash - 925, combined bets - 25, action - fold, round bet - FOLDED
+pot size: 400
+  river
+player1: cash - 975, combined bets - 25, action - check, round bet - 0
+player2: cash - 825, combined bets - 25, action - fold, round bet - FOLDED
+player3: cash - 875, combined bets - 25, action - fold, round bet - FOLDED
+pot size: 400
+  finding_winner
+player1: None
+player2: None
+player3: one pair
+player4: one pair
+WINNERS
+ -player3
+ -player4
+   round no. 2
+  preflop
+player2: cash - 825, combined bets - 25, action - small blind, round bet - 0
+player3: cash - 1075, combined bets - 25, action - big blind, round bet - 0
+player4: cash - 1075, combined bets - 25, action - raise, round bet - 50
+player1: cash - 975, combined bets - 25, action - fold, round bet - FOLDED
+  flop
+player2: cash - 800, combined bets - 50, action - fold, round bet - FOLDED
+player3: cash - 1050, combined bets - 50, action - fold, round bet - FOLDED
+player4: cash - 1025, combined bets - 25, action - raise, round bet - 50
+pot size: 150
+  turn
+player4: cash - 1025, combined bets - 25, action - call, round bet - 0
+pot size: 150
+  river
+player4: cash - 925, combined bets - 25, action - raise, round bet - 100
+pot size: 250
+  finding_winner
+player2: two pairs
+player3: flush
+player4: flush
+player1: full house
+WINNERS
+ -player1
+   round no. 3
+  preflop
+player3: cash - 1050, combined bets - 50, action - small blind, round bet - 0
+player4: cash - 925, combined bets - 25, action - big blind, round bet - 0
+player1: cash - 1225, combined bets - 25, action - call, round bet - 0
+player2: cash - 800, combined bets - 50, action - check, round bet - 0
+  flop
+player3: cash - 975, combined bets - 75, action - raise, round bet - 50
+player4: cash - 925, combined bets - 25, action - call, round bet - -25
+player1: cash - 1175, combined bets - 25, action - raise, round bet - 50
+player2: cash - 800, combined bets - 50, action - fold, round bet - FOLDED
+pot size: 125
+  turn
+player3: cash - 1025, combined bets - 25, action - call, round bet - -50
+player4: cash - 925, combined bets - 25, action - call, round bet - 0
+player1: cash - 1075, combined bets - 25, action - raise, round bet - 100
+pot size: 175
+  river
+player3: cash - 925, combined bets - 25, action - raise, round bet - 100
+player4: cash - 925, combined bets - 25, action - call, round bet - 0
+player1: cash - 1075, combined bets - 25, action - call, round bet - 0
+pot size: 275
+  finding_winner
+player3: full house
+player4: full house
+player1: straight flush
+player2: straight
+WINNERS
+ -player1

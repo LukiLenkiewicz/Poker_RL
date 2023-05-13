@@ -4,4 +4,4 @@ class Card:
         self.suit = suit
 
     def __str__(self):
-        return f"{self.card_num}_{self.suit}"
+        return f"{self.card_num}{self.suit}"
