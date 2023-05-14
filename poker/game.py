@@ -12,6 +12,7 @@ class Game:
         self.starting_bankroll = starting_bankroll
         self.small_blind = small_blind
         self.big_blind = small_blind*2
+        self.num_folded_players = 0
         self.deck = Deck()
 
         logging.basicConfig(level=logging.INFO, filename="logging.log", filemode="w", format="%(message)s")
@@ -44,6 +45,8 @@ class Game:
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
                 logging.info(f"pot size: {pot}")
+                if self.num_folded_players == len(self.players) - 1:
+                    break
 
             logging.info("  finding_winner")
             hand_checker.public_cards = self.public_cards
@@ -51,8 +54,9 @@ class Game:
             for player in self.players:
                 hand = hand_checker.check_hand(player)
                 player.hand = hand
+                if not player.folded:
+                    current_hands.append(hand["hand"])
                 logging.info(f"{player.name}: {hand['hand']}")
-                current_hands.append(hand["hand"])
 
             strongest_hand = None
             for hand in HANDS_HIERARCHY:
@@ -102,12 +106,15 @@ class Game:
                 if blind_bet > self.min_bet:
                     self.min_bet = blind_bet
 
+        self.num_folded_players = 0
         for player in self.players[starting_player:]:
             if not player.folded and not player.all_in:
-                old_pot = pot
+                self.min_bet = max(map(lambda player: player.given_bet, self.players))
                 pot = player.make_action(pot, game_round, self.min_bet, self.public_cards)
-                if pot > old_pot:
-                    min_bet = pot - old_pot
+                if player.folded:
+                    self.num_folded_players += 1
+                if self.num_folded_players == len(self.players) - 1:
+                    break
         return pot
 
     def _change_dealer(self):
@@ -126,8 +133,14 @@ class Game:
 
 
 if __name__ == "__main__":
-    arr = [1,2,3]
+    class Something:
+        def __init__(self, val):
+            self.val = val
 
-    arr += []
+    s1 = Something(1)
+    s2 = Something(2)
+    s3 = Something(3)
+    arr = [s1, s2, s3]
 
-    print(arr)
+    winner = max(map(lambda x: x.val, arr))
+    print(winner)
