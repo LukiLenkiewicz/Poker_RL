@@ -6,12 +6,12 @@ class HandHandler:
         self.public_cards = None
 
     def check_hand(self, player):
-        cards = player._cards + self.public_cards
+        self.cards = player._cards + self.public_cards
 
         card_counter = self.generate_card_counter()
         current_hand = {"hand": None}
 
-        for card in cards:
+        for card in self.cards:
             card_counter[card.card_num] += 1
             card_counter[card.suit] += 1
 
@@ -84,12 +84,22 @@ class HandHandler:
             
         return best_straight
 
-    @staticmethod
-    def check_flush(card_counter):
-        # The highest card of the five determines the strength of the flush
+    def check_flush(self, card_counter):
         for color, count in list(card_counter.items())[:4]:
             if count >= 5:
-                return {"hand": "flush", "color": color}
+                high_card = self.check_high_card_for_flush(color)
+                return {"hand": "flush", "high_card": high_card, "color": color}
+            
+    def check_high_card_for_flush(self, color):  # TODO: get high card for color
+        suits_ = set()
+        for card in self.cards:
+            if card.color == color:
+                suits_.add(card.suit)
+        
+        for card in CARD_NUMS:
+            if card in suits_:
+                high_card = card
+        return high_card
 
     def check_full_house(self, card_counter):
         tripled = self.check_three(card_counter)
@@ -103,7 +113,6 @@ class HandHandler:
 
         if pair:
             return {"hand": "full house", "three": tripled, "pair": pair}
-        
 
     @staticmethod
     def check_four(card_counter):
@@ -114,7 +123,6 @@ class HandHandler:
         
         if four_cards:
             return {"hand": "four", "cards": four_cards}
-
 
     def check_straight_flush(self, card_counter):
         straight = self.check_straight(card_counter)

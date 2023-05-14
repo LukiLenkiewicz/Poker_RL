@@ -66,7 +66,7 @@ class Game:
             winners = []
             logging.info("WINNERS")
             for player in self.players:
-                if player.hand["hand"] == strongest_hand:
+                if player.hand["hand"] == strongest_hand and not player.folded:
                     winners.append(player)
                     logging.info(f" -{player.name}")
             
