@@ -40,13 +40,16 @@ class Game:
                 player.all_in = False
 
             self.shuffle_up_and_deal()
-
+            self.num_folded_players = 0
             for round in ROUNDS:
                 logging.info(f"  {round}")
-                pot = self._make_actions(pot, game_round=round)
+                pot = self._make_actions(pot, game_round=round, beginning=True)
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
                 logging.info(f"pot size: {pot}")
+                while self._non_equal_bets():
+                    pot = self._make_actions(pot, game_round=round, beginning=False)
+
                 if self.num_folded_players == len(self.players) - 1:
                     break
 
@@ -104,9 +107,9 @@ class Game:
                 card = self.deck.give_card()
                 player.add_card(card)
 
-    def _make_actions(self, pot, game_round="preflop"):
+    def _make_actions(self, pot, game_round="preflop", beginning=False):
         starting_player = 0
-        if game_round == "preflop":
+        if game_round == "preflop" and beginning:
             starting_player = 2
             blinds = ["small_blind", "big_blind"]
             for blind, player in zip(blinds, self.players[:2]):
@@ -117,15 +120,15 @@ class Game:
                 if blind_bet > self.min_bet:
                     self.min_bet = blind_bet
 
-        self.num_folded_players = 0
         for player in self.players[starting_player:]:
+            if self.num_folded_players == len(self.players) - 1:
+                logging.info("one player left")
+                break
             if not player.folded and not player.all_in:
                 self.min_bet = max(map(lambda player: player.given_bet, self.players))
                 pot = player.make_action(pot, game_round, self.min_bet, self.public_cards)
                 if player.folded:
                     self.num_folded_players += 1
-                if self.num_folded_players == len(self.players) - 1:
-                    break
         return pot
 
     def _change_dealer(self):
@@ -142,16 +145,24 @@ class Game:
             else:
                 i += 1
 
+    def _non_equal_bets(self):
+        if self.num_folded_players == len(self.players) - 1:
+            return False
+
+        for player in self.players:
+            if player.given_bet != self.min_bet and not player.all_in and not player.folded:
+                return True
+            
+        return False
 
 if __name__ == "__main__":
     class Something:
-        def __init__(self, val):
-            self.val = val
+        def __init__(self, folded):
+            self.folded = folded
 
-    s1 = Something(1)
-    s2 = Something(2)
-    s3 = Something(3)
-    arr = [s1, s2, s3]
+    s1 = Something(False)
+    s2 = Something(True)
+    s3 = Something(True)
+    arr = [1,2,3]
 
-    winner = max(map(lambda x: x.val, arr))
-    print(winner)
+    print(arr[0:])

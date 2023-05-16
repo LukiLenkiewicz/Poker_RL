@@ -108,7 +108,7 @@ class RandomAgent(Agent):
             bet_size = 0
             self.folded = True
 
-        message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {0}"
+        message = f"{self.name}: cash - {self.cash}, combined bets - {self.given_bet}, action - {action}, round bet - {bet_size}"
         logging.info(message)
         return pot + bet_size
 
