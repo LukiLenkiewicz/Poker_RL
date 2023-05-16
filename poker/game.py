@@ -27,8 +27,10 @@ class Game:
             player.cash = self.starting_bankroll
 
         for round in range(num_rounds):
-            message = f"   round no. {round+1}"
+            message = f"###### Round no. {round+1} #######"
+            logging.info("##########################")
             logging.info(message)
+            logging.info("##########################")
             pot = 0
             self.public_cards = []
             self.min_bet = 0
@@ -62,22 +64,31 @@ class Game:
             for hand in HANDS_HIERARCHY:
                 if hand in current_hands:
                     strongest_hand = hand
-                
-            winners = []
-            logging.info("WINNERS")
+
+            logging.info("------STRONGEST HAND------")
+            logging.info(f"{strongest_hand}")
+
+            strongest_hand_players = []
+            logging.info("------getting strongest hands------")
             for player in self.players:
                 if player.hand["hand"] == strongest_hand and not player.folded:
-                    winners.append(player)
+                    strongest_hand_players.append(player)
                     logging.info(f" -{player.name}")
-            
-            prize = pot//len(winners)
 
-            for winner in winners:
+            # logging.info("------finding winners----------")
+            # winners = []
+            # winners = hand_checker.compare_strongest_hands(strongest_hand_players)
+            
+
+            prize = pot//len(strongest_hand_players)
+
+            for winner in strongest_hand_players:
                 winner.cash += prize
 
             #reset_hand and bets
             for player in self.players:
                 player.hand = {"hand": None}
+                player.given_bet = 0
 
             self._delete_losers()
             self._change_dealer()
@@ -101,7 +112,7 @@ class Game:
             for blind, player in zip(blinds, self.players[:2]):
                 blind_bet = player.make_bet(action=blind)
                 pot += blind_bet
-                message = f"{player.name}: cash - {player.cash}, combined bets - {player.given_bet}, action - small blind, round bet - {self.small_blind}"
+                message = f"{player.name}: cash - {player.cash}, combined bets - {player.given_bet}, action - {blind}, round bet - {eval(f'self.'+f'{blind}')}"
                 logging.info(message)
                 if blind_bet > self.min_bet:
                     self.min_bet = blind_bet
