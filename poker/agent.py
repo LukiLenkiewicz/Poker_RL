@@ -14,6 +14,7 @@ class Agent:
         self.all_in = False
         self.given_bet = 0
         self.hand = {"hand": None}
+        self.num_raises = 0
 
     def add_card(self, card):
         self._cards += card
@@ -66,7 +67,7 @@ class Agent:
         allowed_actions = ACTIONS.copy()
         if bet > self.given_bet:
             allowed_actions.remove("check")
-        if bet > self.given_bet + self.cash:
+        if bet > self.given_bet + self.cash or self.num_raises == 3:
             allowed_actions.remove("raise")
 
         return allowed_actions
@@ -101,6 +102,7 @@ class RandomAgent(Agent):
             if min_bet > self.given_bet:
                 bet_size = self.make_bet(action="call", bet=min_bet)
                 pot += bet_size
+            self.num_raises += 1
             bet_size = self.small_bet() if round in ("preflop", "flop") else self.big_bet()
         elif action == "check":
             bet_size = 0

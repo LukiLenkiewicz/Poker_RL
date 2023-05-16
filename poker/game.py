@@ -43,6 +43,10 @@ class Game:
             self.num_folded_players = 0
             for round in ROUNDS:
                 logging.info(f"  {round}")
+
+                for player in self.players:
+                    player.num_raises = 0
+
                 pot = self._make_actions(pot, game_round=round, beginning=True)
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
