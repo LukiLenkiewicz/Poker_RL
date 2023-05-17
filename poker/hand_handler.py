@@ -39,8 +39,25 @@ class HandHandler:
         }
         winning_hand = players[0].hand
         
-        for card_num in winner_handler[winning_hand]:
-            pass
+        for hand_num in winner_handler[winning_hand]:
+            current_nums = set()
+            for player in players:
+                current_nums.add(player.hand[hand_num])
+            
+            current_strongest = None
+            for card_num in CARD_NUMS:
+                if card_num in current_nums:
+                    current_strongest = card_num
+            
+            current_winners = []
+            for player in players:
+                if player.hand[card_num] == current_strongest:
+                    current_winners.append(player)
+            
+            if len(current_winners) == 1:
+                return current_winners
+        
+        return current_winners        
 
 
     @staticmethod

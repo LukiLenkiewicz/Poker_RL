@@ -82,12 +82,13 @@ class Game:
                     strongest_hand_players.append(player)
                     logging.info(f" -{player.name}")
 
-            # logging.info("------finding winners----------")
-            # winners = []
-            # winners = hand_checker.compare_strongest_hands(strongest_hand_players)
-            
+            logging.info("------finding winners----------")
+            if len(strongest_hand_players) > 1:
+                winners = hand_checker.compare_strongest_hands(strongest_hand_players)
+            else:
+                winners = strongest_hand_players            
 
-            prize = pot//len(strongest_hand_players)
+            prize = pot//len(winners)
 
             for winner in strongest_hand_players:
                 winner.cash += prize
