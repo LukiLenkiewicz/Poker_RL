@@ -7,18 +7,18 @@ from hand_handler import HandHandler
 from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
-    def __init__(self, num_players, starting_bankroll, small_blind):
+    def __init__(self, num_players, starting_bankroll, small_blind, num_rounds=3):
         self.players = self._init_players(num_players)
         self.starting_bankroll = starting_bankroll
         self.small_blind = small_blind
         self.big_blind = small_blind*2
         self.num_folded_players = 0
+        self.num_rounds = num_rounds
         self.deck = Deck()
 
         logging.basicConfig(level=logging.INFO, filename="logging.log", filemode="w", format="%(message)s")
 
     def start_game(self):
-        num_rounds = 3
         hand_checker = HandHandler()
 
         for player in self.players:
@@ -26,7 +26,7 @@ class Game:
             player.big_blind = self.big_blind
             player.cash = self.starting_bankroll
 
-        for round in range(num_rounds):
+        for round in range(self.num_rounds):
             message = f"###### Round no. {round+1} #######"
             logging.info("##########################")
             logging.info(message)
@@ -40,6 +40,11 @@ class Game:
                 player.all_in = False
 
             self.shuffle_up_and_deal()
+
+            logging.info("##### PLAYER CARDS #######")
+            for player in self.players:
+                logging.info(f"-{player.name}; {player._cards[0]}\t{player._cards[1]}")
+
             self.num_folded_players = 0
             for round in ROUNDS:
                 logging.info(f"  {round}")
@@ -82,6 +87,9 @@ class Game:
                     strongest_hand_players.append(player)
                     logging.info(f" -{player.name}")
 
+            logging.info("------printing cards----------")
+            cards = [str(card) for card in self.public_cards]
+            logging.info("\t".join(cards))
             logging.info("------finding winners----------")
             if len(strongest_hand_players) > 1:
                 winners = hand_checker.compare_strongest_hands(strongest_hand_players)
@@ -91,10 +99,12 @@ class Game:
             prize = pot//len(winners)
 
             for winner in strongest_hand_players:
+                logging.info(f"-{winner.name}")
                 winner.cash += prize
 
             #reset_hand and bets
             for player in self.players:
+                player._cards = []
                 player.hand = {"hand": None}
                 player.given_bet = 0
 

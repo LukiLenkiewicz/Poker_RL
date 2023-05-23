@@ -35,23 +35,26 @@ class HandHandler:
             "flush": ["high card"],
             "full house": ["three", "pair"],
             "four": ["cards"],
-            "straight flush": []
+            "straight flush": ["high card"]
         }
-        winning_hand = players[0].hand
-        
+        winning_hand = players[0].hand["hand"]
+
+        if winning_hand is None:
+            return players        
+
         for hand_num in winner_handler[winning_hand]:
             current_nums = set()
             for player in players:
                 current_nums.add(player.hand[hand_num])
-            
+
             current_strongest = None
             for card_num in CARD_NUMS:
                 if card_num in current_nums:
                     current_strongest = card_num
-            
+
             current_winners = []
             for player in players:
-                if player.hand[card_num] == current_strongest:
+                if player.hand[hand_num] == current_strongest:
                     current_winners.append(player)
             
             if len(current_winners) == 1:
@@ -88,7 +91,7 @@ class HandHandler:
         second_pair = self.check_pair(new_card_counter)
 
         if second_pair:
-            return {"hand": "two pairs", "first": first_pair, "second": second_pair}
+            return {"hand": "two pairs", "first": first_pair["first"], "second": second_pair["first"]}
         
     @staticmethod
     def check_three(card_counter):
@@ -99,7 +102,6 @@ class HandHandler:
         
         if tripled_cards:
             return {"hand": "three", "cards": tripled_cards}
-
 
     @staticmethod
     def check_straight(card_counter):
@@ -122,7 +124,7 @@ class HandHandler:
         for color, count in list(card_counter.items())[:4]:
             if count >= 5:
                 high_card = self.check_high_card_for_flush(color)
-                return {"hand": "flush", "high_card": high_card, "color": color}
+                return {"hand": "flush", "high card": high_card, "color": color}
             
     def check_high_card_for_flush(self, color):
         suits_ = set()
@@ -172,17 +174,23 @@ class HandHandler:
 
             straight = self.check_straight(card_counter)
             if straight and flush:
-                return {"hand": "straight flush"}
+                return {"hand": "straight flush", "high card": straight["high card"]}
             
 
 if __name__ == "__main__":
     class Player:
         def __init__(self, cards):
             self._cards = cards
+            self.hand = None
 
     from card import Card
-    p1 = Player([Card("A", "clovers"), Card("5", "pikes")])
+    p1 = Player([Card("K", "hearts"), Card("K", "tiles")])
+    p2 = Player([Card("K", "clovers"), Card("K", "pikes")])
     handler = HandHandler()
-    handler.public_cards = [Card("6", "hearts"), Card("K", "hearts"), Card("Q", "hearts"), Card("T", "tiles")]
-    result = handler.check_hand(p1)
+    handler.public_cards = [Card("6", "hearts"), Card("A", "hearts"), Card("Q", "hearts"), Card("T", "tiles")]
+    hand = handler.check_hand(p1)
+    p1.hand = hand
+    hand = handler.check_hand(p2)
+    p2.hand = hand
+    result = handler.compare_strongest_hands([p1, p2])
     print(result)
