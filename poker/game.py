@@ -1,19 +1,19 @@
 import logging
 
-from agent import Agent, RandomAgent
+from agent import Agent, RandomAgent, QAgent
 from deck import Deck
 from hand_handler import HandHandler
 
 from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
-    def __init__(self, num_players, starting_bankroll, small_blind, num_rounds=3):
+    def __init__(self, num_players, starting_bankroll, small_blind, num_deals=3):
         self.players = self._init_players(num_players)
         self.starting_bankroll = starting_bankroll
         self.small_blind = small_blind
         self.big_blind = small_blind*2
         self.num_folded_players = 0
-        self.num_rounds = num_rounds
+        self.num_deals = num_deals
         self.deck = Deck()
 
         logging.basicConfig(level=logging.INFO, filename="logging.log", filemode="w", format="%(message)s")
@@ -26,39 +26,29 @@ class Game:
             player.big_blind = self.big_blind
             player.cash = self.starting_bankroll
 
-        for round in range(self.num_rounds):
-            message = f"###### Round no. {round+1} #######"
-            logging.info("##########################")
-            logging.info(message)
-            logging.info("##########################")
-            pot = 0
-            self.public_cards = []
-            self.min_bet = 0
-
+        for deal_num in range(self.num_deals):
             for player in self.players:
-                player.folded = False
-                player.all_in = False
+                if isinstance(player, QAgent):
+                    player.prev_cash = player.cash
+                    player.prev_round = None
+                    player.prev_hand = {"hand": None}
 
-            self.shuffle_up_and_deal()
+            pot = self.prepare_new_deal(deal_num)
 
-            logging.info("##### PLAYER CARDS #######")
-            for player in self.players:
-                logging.info(f"-{player.name}; {player._cards[0]}\t{player._cards[1]}")
-
-            self.num_folded_players = 0
             for round in ROUNDS:
                 logging.info(f"  {round}")
 
                 for player in self.players:
                     player.num_raises = 0
 
+                self._evaluate_last_decisions(round)
                 pot = self._make_actions(pot, game_round=round, beginning=True)
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
                 logging.info(f"pot size: {pot}")
                 while self._non_equal_bets():
+                    self._evaluate_last_decisions(round)
                     pot = self._make_actions(pot, game_round=round, beginning=False)
-
                 if self.num_folded_players == len(self.players) - 1:
                     break
 
@@ -102,6 +92,8 @@ class Game:
                 logging.info(f"-{winner.name}")
                 winner.cash += prize
 
+            self._evaluate_last_decisions(round)
+
             #reset_hand and bets
             for player in self.players:
                 player._cards = []
@@ -110,6 +102,29 @@ class Game:
 
             self._delete_losers()
             self._change_dealer()
+
+    def prepare_new_deal(self, num_deal):
+        message = f"###### Round no. {num_deal+1} #######"
+        logging.info("##########################")
+        logging.info(message)
+        logging.info("##########################")
+        pot = 0
+        self.public_cards = []
+        self.min_bet = 0
+
+        for player in self.players:
+            player.folded = False
+            player.all_in = False
+
+        self.shuffle_up_and_deal()
+
+        logging.info("##### PLAYER CARDS #######")
+        for player in self.players:
+            logging.info(f"-{player.name}; {player._cards[0]}\t{player._cards[1]}")
+
+        self.num_folded_players = 0
+
+        return pot
 
     def shuffle_up_and_deal(self):
         self.deck = Deck()
@@ -149,7 +164,12 @@ class Game:
     def _change_dealer(self):
         self.players = self.players[1:] + self.players[:1]
 
-    def _init_players(self, num_players):
+    def _init_players(self, num_players, q_agent=False):
+        if q_agent:
+            players = [RandomAgent(f"player{i+1}") for i in range(num_players-1)]
+            self.q_agent = QAgent(f"player{num_players}")
+            players.append(self.q_agent)
+            return players
         return [RandomAgent(f"player{i+1}") for i in range(num_players)]
     
     def _delete_losers(self):
@@ -169,6 +189,11 @@ class Game:
                 return True
             
         return False
+
+    def _evaluate_last_decisions(self, round):
+        for player in self.players:
+            if isinstance(player, QAgent):
+                player.evaluate_last_decision(round)
 
 if __name__ == "__main__":
     class Something:
