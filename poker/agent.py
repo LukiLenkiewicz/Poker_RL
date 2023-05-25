@@ -164,13 +164,14 @@ class QAgent(Agent):
         if self.prev_round is not None:
             self.hand_handler.public_cards = public_cards
             reward = self.cash - self.prev_cash
-            current_hand = self.hand_handler(self._cards)
-            current_state = self.Q_values[self.prev_round][self.prev_hand]
+            current_hand = self.hand_handler.check_hand(self)
+            current_state = self.Q_values[self.prev_round][self.prev_hand["hand"]]
             current_state_allowed = {action: current_state[action]  for action in current_state}
             next_value = max(current_state_allowed, key=lambda k: current_state_allowed[k])
+            next_value =current_state_allowed[next_value]
             alpha = self.alpha0/(1+num_iter*self.decay)
-            self.Q_values[round][current_hand][self.prev_action] *= 1 - alpha
-            self.Q_values[round][current_hand][self.prev_action] += alpha*(reward + self.gamma*next_value)
+            self.Q_values[round][current_hand["hand"]][self.prev_action] *= (1 - alpha)
+            self.Q_values[round][current_hand["hand"]][self.prev_action] += alpha*(reward + self.gamma*next_value)
 
             self.prev_hand = current_hand
             self.prev_cash = self.cash

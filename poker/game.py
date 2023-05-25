@@ -7,8 +7,8 @@ from hand_handler import HandHandler
 from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
-    def __init__(self, num_players, starting_bankroll, small_blind, num_deals=3):
-        self.players = self._init_players(num_players)
+    def __init__(self, num_players, starting_bankroll, small_blind, num_deals=3, q_agent=False):
+        self.players = self._init_players(num_players, q_agent=q_agent)
         self.starting_bankroll = starting_bankroll
         self.small_blind = small_blind
         self.big_blind = small_blind*2
@@ -41,13 +41,13 @@ class Game:
                 for player in self.players:
                     player.num_raises = 0
 
-                self._evaluate_last_decisions(round)
+                self._evaluate_last_decisions(round, self.public_cards, deal_num)
                 pot = self._make_actions(pot, game_round=round, beginning=True)
                 cards = self.deck.give_card(round=round)
                 self.public_cards += cards
                 logging.info(f"pot size: {pot}")
                 while self._non_equal_bets():
-                    self._evaluate_last_decisions(round)
+                    self._evaluate_last_decisions(round, self.public_cards, deal_num)
                     pot = self._make_actions(pot, game_round=round, beginning=False)
                 if self.num_folded_players == len(self.players) - 1:
                     break
@@ -92,7 +92,7 @@ class Game:
                 logging.info(f"-{winner.name}")
                 winner.cash += prize
 
-            self._evaluate_last_decisions(round)
+            self._evaluate_last_decisions(round, self.public_cards, deal_num)
 
             #reset_hand and bets
             for player in self.players:
@@ -190,10 +190,10 @@ class Game:
             
         return False
 
-    def _evaluate_last_decisions(self, round):
+    def _evaluate_last_decisions(self, round, public_cards, deal_num):
         for player in self.players:
             if isinstance(player, QAgent):
-                player.evaluate_last_decision(round)
+                player.evaluate_last_decision(round, public_cards, deal_num)
 
 if __name__ == "__main__":
     class Something:
