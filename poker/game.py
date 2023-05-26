@@ -19,7 +19,7 @@ class Game:
         logging.basicConfig(level=logging.INFO, filename="logging.log", filemode="w", format="%(message)s")
 
     def start_game(self):
-        hand_checker = HandHandler()
+        self.hand_checker = HandHandler()
 
         for player in self.players:
             player.small_blind = self.small_blind
@@ -36,59 +36,15 @@ class Game:
             pot = self.prepare_new_deal(deal_num)
 
             for round in ROUNDS:
-                logging.info(f"  {round}")
-
-                for player in self.players:
-                    player.num_raises = 0
-
-                self._evaluate_last_decisions(round, self.public_cards, deal_num)
-                pot = self._make_actions(pot, game_round=round, beginning=True)
-                cards = self.deck.give_card(round=round)
-                self.public_cards += cards
-                logging.info(f"pot size: {pot}")
-                while self._non_equal_bets():
-                    self._evaluate_last_decisions(round, self.public_cards, deal_num)
-                    pot = self._make_actions(pot, game_round=round, beginning=False)
-                if self.num_folded_players == len(self.players) - 1:
+                pot, quit = self._play_round(round, pot, deal_num)
+                if quit:
                     break
 
-            logging.info("  finding_winner")
-            hand_checker.public_cards = self.public_cards
-            current_hands = []
-            for player in self.players:
-                hand = hand_checker.check_hand(player)
-                player.hand = hand
-                if not player.folded:
-                    current_hands.append(hand["hand"])
-                logging.info(f"{player.name}: {hand['hand']}")
-
-            strongest_hand = None
-            for hand in HANDS_HIERARCHY:
-                if hand in current_hands:
-                    strongest_hand = hand
-
-            logging.info("------STRONGEST HAND------")
-            logging.info(f"{strongest_hand}")
-
-            strongest_hand_players = []
-            logging.info("------getting strongest hands------")
-            for player in self.players:
-                if player.hand["hand"] == strongest_hand and not player.folded:
-                    strongest_hand_players.append(player)
-                    logging.info(f" -{player.name}")
-
-            logging.info("------printing cards----------")
-            cards = [str(card) for card in self.public_cards]
-            logging.info("\t".join(cards))
-            logging.info("------finding winners----------")
-            if len(strongest_hand_players) > 1:
-                winners = hand_checker.compare_strongest_hands(strongest_hand_players)
-            else:
-                winners = strongest_hand_players            
+            winners = self._get_round_winners()         
 
             prize = pot//len(winners)
 
-            for winner in strongest_hand_players:
+            for winner in winners:
                 logging.info(f"-{winner.name}")
                 winner.cash += prize
 
@@ -137,6 +93,68 @@ class Game:
                 card = self.deck.give_card()
                 player.add_card(card)
 
+    def _play_round(self, round, pot, deal_num):
+        logging.info(f"  {round}")
+
+        for player in self.players:
+            player.num_raises = 0
+
+        self._evaluate_last_decisions(round, self.public_cards, deal_num)
+        pot = self._make_actions(pot, game_round=round, beginning=True)
+        cards = self.deck.give_card(round=round)
+        self.public_cards += cards
+        logging.info(f"pot size: {pot}")
+        while self._non_equal_bets():
+            self._evaluate_last_decisions(round, self.public_cards, deal_num)
+            pot = self._make_actions(pot, game_round=round, beginning=False)
+        if self.num_folded_players == len(self.players) - 1:
+            return pot, True
+
+        return pot, False
+    
+    def _get_round_winners(self):
+
+        logging.info("########### finding_winner ##########")
+        strongest_hand = self._get_strongest_hand()
+
+        strongest_hand_players = []
+        logging.info("------getting strongest hands------")
+        for player in self.players:
+            if player.hand["hand"] == strongest_hand and not player.folded:
+                strongest_hand_players.append(player)
+                logging.info(f" -{player.name}")
+
+        logging.info("------printing cards----------")
+        cards = [str(card) for card in self.public_cards]
+        logging.info("\t".join(cards))
+        logging.info("------finding winners----------")
+        if len(strongest_hand_players) > 1:
+            winners = self.hand_checker.compare_strongest_hands(strongest_hand_players)
+        else:
+            winners = strongest_hand_players            
+
+        return winners
+    
+    def _get_strongest_hand(self):
+        self.hand_checker.public_cards = self.public_cards
+        current_hands = []
+        for player in self.players:
+            hand = self.hand_checker.check_hand(player)
+            player.hand = hand
+            if not player.folded:
+                current_hands.append(hand["hand"])
+            logging.info(f"{player.name}: {hand['hand']}")
+
+        strongest_hand = None
+        for hand in HANDS_HIERARCHY:
+            if hand in current_hands:
+                strongest_hand = hand
+
+        logging.info("------STRONGEST HAND------")
+        logging.info(f"{strongest_hand}")
+
+        return strongest_hand
+
     def _make_actions(self, pot, game_round="preflop", beginning=False):
         starting_player = 0
         if game_round == "preflop" and beginning:
@@ -167,7 +185,7 @@ class Game:
     def _init_players(self, num_players, q_agent=False):
         if q_agent:
             players = [RandomAgent(f"player{i+1}") for i in range(num_players-1)]
-            self.q_agent = QAgent(f"player{num_players}")
+            self.q_agent = QAgent(f"player{num_players}", train=False)
             players.append(self.q_agent)
             return players
         return [RandomAgent(f"player{i+1}") for i in range(num_players)]

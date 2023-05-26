@@ -105,7 +105,7 @@ class RandomAgent(Agent):
 
 
 class QAgent(Agent):
-    def __init__(self, name):
+    def __init__(self, name, train=True):
         super().__init__(name=name)
         self.Q_values = self._generate_q_table()
 
@@ -120,7 +120,7 @@ class QAgent(Agent):
         self.gamma = 0.9
 
         self.hand_handler = HandHandler()
-        self.train = True
+        self.train = train
 
     def make_action(self, pot, round, min_bet=0, public_cards=[]):
         self.prev_cash = self.cash
@@ -132,6 +132,7 @@ class QAgent(Agent):
             self.prev_action = action
         else:
             action =  self._make_decision(allowed_actions, round, public_cards)
+            self.prev_action = action
 
         if action == "call":
             bet_size = self.make_bet(action=action, bet=min_bet)
@@ -153,8 +154,8 @@ class QAgent(Agent):
 
     def _make_decision(self, allowed_actions, round, public_cards):
         self.hand_handler.public_cards = public_cards
-        current_hand = self.hand_handler(self._cards) 
-        possible_decisions = self.Q_values[round][current_hand]
+        current_hand = self.hand_handler.check_hand(self)
+        possible_decisions = self.Q_values[round][current_hand["hand"]]
         action_choice = {action: possible_decisions[action]  for action in allowed_actions}
         action = max(action_choice, key=lambda k: action_choice[k])
 
@@ -190,11 +191,3 @@ class QAgent(Agent):
                 table[round][hand] = {action: 0. for action in ACTIONS}
 
         return table
-    
-
-if __name__ == "__main__":
-
-    dict_ = {"fold":20, "raise": 5}
-
-    action = max(dict_, key= lambda k: dict_[k])
-    print(action)
