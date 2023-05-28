@@ -7,8 +7,8 @@ from hand_handler import HandHandler
 from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
-    def __init__(self, num_players, starting_bankroll, small_blind, num_deals=3, q_agent=False):
-        self.players = self._init_players(num_players, q_agent=q_agent)
+    def __init__(self, num_players, starting_bankroll, small_blind, num_deals=3, q_agent=False, q_agent_train=False):
+        self.players = self._init_players(num_players, q_agent=q_agent, q_agent_train=q_agent_train)
         self.starting_bankroll = starting_bankroll
         self.small_blind = small_blind
         self.big_blind = small_blind*2
@@ -48,13 +48,15 @@ class Game:
                 logging.info(f"-{winner.name}")
                 winner.cash += prize
 
-            self._evaluate_last_decisions(round, self.public_cards, deal_num)
+            self._evaluate_last_decisions(round, self.public_cards)
 
             #reset_hand and bets
             for player in self.players:
                 player._cards = []
                 player.hand = {"hand": None}
                 player.given_bet = 0
+                if isinstance(player, QAgent):
+                    player.prev_round = None
 
             self._delete_losers()
             self._change_dealer()
@@ -98,14 +100,14 @@ class Game:
 
         for player in self.players:
             player.num_raises = 0
-
-        self._evaluate_last_decisions(round, self.public_cards, deal_num)
+        
+        self._evaluate_last_decisions(round, self.public_cards)  # in preflop can't estimate
         pot = self._make_actions(pot, game_round=round, beginning=True)
         cards = self.deck.give_card(round=round)
         self.public_cards += cards
         logging.info(f"pot size: {pot}")
         while self._non_equal_bets():
-            self._evaluate_last_decisions(round, self.public_cards, deal_num)
+            self._evaluate_last_decisions(round, self.public_cards)
             pot = self._make_actions(pot, game_round=round, beginning=False)
         if self.num_folded_players == len(self.players) - 1:
             return pot, True
@@ -182,10 +184,11 @@ class Game:
     def _change_dealer(self):
         self.players = self.players[1:] + self.players[:1]
 
-    def _init_players(self, num_players, q_agent=False):
+    def _init_players(self, num_players, q_agent=False, q_agent_train=False):
         if q_agent:
             players = [RandomAgent(f"player{i+1}") for i in range(num_players-1)]
-            self.q_agent = QAgent(f"player{num_players}", train=False)
+            # self.q_agent = QAgent(f"player{num_players}", train=q_agent_train)
+            self.q_agent = QAgent(f"agent", train=q_agent_train)
             players.append(self.q_agent)
             return players
         return [RandomAgent(f"player{i+1}") for i in range(num_players)]
@@ -208,10 +211,10 @@ class Game:
             
         return False
 
-    def _evaluate_last_decisions(self, round, public_cards, deal_num):
+    def _evaluate_last_decisions(self, round, public_cards):
         for player in self.players:
             if isinstance(player, QAgent):
-                player.evaluate_last_decision(round, public_cards, deal_num)
+                player.evaluate_last_decision(round, public_cards)
 
 if __name__ == "__main__":
     class Something:

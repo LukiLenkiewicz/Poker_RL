@@ -46,6 +46,10 @@ class HandHandler:
             current_nums = set()
             for player in players:
                 current_nums.add(player.hand[hand_num])
+                # try:
+                #     current_nums.add(player.hand[hand_num])
+                # except TypeError:
+                #     print(player.hand)
 
             current_strongest = None
             for card_num in CARD_NUMS:
@@ -147,7 +151,7 @@ class HandHandler:
         pair = self.check_pair(new_card_counter)
 
         if pair:
-            return {"hand": "full house", "three": tripled, "pair": pair}
+            return {"hand": "full house", "three": tripled["cards"], "pair": pair["first"]}
 
     @staticmethod
     def check_four(card_counter):

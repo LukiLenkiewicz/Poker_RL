@@ -70,6 +70,8 @@ class Agent:
             allowed_actions.remove("check")
         if bet > self.given_bet + self.cash or self.num_raises == 3:
             allowed_actions.remove("raise")
+        if self.given_bet >= bet:
+            allowed_actions.remove("fold")
 
         return allowed_actions
 
@@ -115,7 +117,7 @@ class QAgent(Agent):
         self.prev_action = None
         self.last_allowed_actions = []
 
-        self.alpha0 = 0.05
+        self.learning_rate = 0.05
         self.decay = 0.005
         self.gamma = 0.9
 
@@ -123,16 +125,19 @@ class QAgent(Agent):
         self.train = train
 
     def make_action(self, pot, round, min_bet=0, public_cards=[]):
-        self.prev_cash = self.cash
         allowed_actions = self.get_allowed_actions(min_bet)
         self.last_allowed_actions = allowed_actions
 
-        if self.train:
+        if np.random.uniform(0,1) < 0.5:
             action =  np.random.choice(allowed_actions)
-            self.prev_action = action
         else:
             action =  self._make_decision(allowed_actions, round, public_cards)
-            self.prev_action = action
+
+        self.prev_round = round
+        self.hand_handler.public_cards = public_cards
+        self.prev_hand = self.hand_handler.check_hand(self)
+        self.prev_action = action
+        self.prev_cash = self.cash
 
         if action == "call":
             bet_size = self.make_bet(action=action, bet=min_bet)
@@ -161,24 +166,18 @@ class QAgent(Agent):
 
         return action
     
-    def evaluate_last_decision(self, round, public_cards, num_iter):
+    def evaluate_last_decision(self, round, public_cards):
         if self.prev_round is not None:
             self.hand_handler.public_cards = public_cards
-            reward = self.cash - self.prev_cash
+            reward = self.prev_cash - self.cash
             current_hand = self.hand_handler.check_hand(self)
-            current_state = self.Q_values[self.prev_round][self.prev_hand["hand"]]
+            current_state = self.Q_values[round][current_hand["hand"]]
             current_state_allowed = {action: current_state[action]  for action in current_state}
             next_value = max(current_state_allowed, key=lambda k: current_state_allowed[k])
-            next_value =current_state_allowed[next_value]
-            alpha = self.alpha0/(1+num_iter*self.decay)
-            self.Q_values[round][current_hand["hand"]][self.prev_action] *= (1 - alpha)
-            self.Q_values[round][current_hand["hand"]][self.prev_action] += alpha*(reward + self.gamma*next_value)
+            next_value = current_state_allowed[next_value]
 
-            self.prev_hand = current_hand
-            self.prev_cash = self.cash
-
-        # save for fututure evaluation
-        self.prev_round = round
+            self.Q_values[self.prev_round][self.prev_hand["hand"]][self.prev_action] = (1 - self.learning_rate)*self.Q_values[self.prev_round][self.prev_hand["hand"]][self.prev_action]\
+                                                                            + self.learning_rate*(reward + self.gamma*next_value)
 
     @staticmethod
     def _generate_q_table():
@@ -187,7 +186,6 @@ class QAgent(Agent):
         for round in ROUNDS:
             table[round] = {}
             for hand in HANDS_HIERARCHY:
-                # table[round][hand] = [0. for _ in range(len(ACTIONS))]
                 table[round][hand] = {action: 0. for action in ACTIONS}
 
         return table
