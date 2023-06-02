@@ -4,6 +4,8 @@ from agent import Agent, RandomAgent, QAgent
 from deck import Deck
 from hand_handler import HandHandler
 
+import matplotlib.pyplot as plt
+
 from constants import NUM_PLAYER_CARDS, HANDS_HIERARCHY, ROUNDS
 
 class Game:
@@ -25,6 +27,8 @@ class Game:
             player.small_blind = self.small_blind
             player.big_blind = self.big_blind
             player.cash = self.starting_bankroll
+
+        players_cash_story = {"player1": [], "player2": [], "player3": [], "agent": []}
 
         for deal_num in range(self.num_deals):
             for player in self.players:
@@ -58,8 +62,18 @@ class Game:
                 if isinstance(player, QAgent):
                     player.prev_round = None
 
+                players_cash_story[player.name].append(player.cash)
+
             self._delete_losers()
             self._change_dealer()
+
+        plt.figure(figsize=(14,7))
+        plt.plot(players_cash_story["player1"], label="player1")
+        plt.plot(players_cash_story["player2"], label="player2")
+        plt.plot(players_cash_story["player3"], label="player3")
+        plt.plot(players_cash_story["agent"], label="agent")
+        plt.legend()
+        plt.show()
 
     def prepare_new_deal(self, num_deal):
         message = f"###### Round no. {num_deal+1} #######"
